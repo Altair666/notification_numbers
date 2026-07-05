@@ -1,0 +1,7 @@
+{
+  "name": "notification_numbers",
+  "version": "0.1.0",
+  "description": "Grist custom widget for registering engineering change notifications (извещения об изменении) issued against product documentation.",
+  "private": true,
+  "license": "UNLICENSED"
+}
