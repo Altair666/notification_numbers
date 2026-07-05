@@ -1,7 +1,17 @@
 {
-  "name": "notification_numbers",
+  "name": "@gristlabs/notification_numbers",
+  "description": "БД номеров извещений",
+  "homePage": "https://github.com/gristlabs/notification_numbers",
   "version": "0.1.0",
-  "description": "Grist custom widget for registering engineering change notifications (извещения об изменении) issued against product documentation.",
-  "private": true,
-  "license": "UNLICENSED"
+"grist": {
+    "name": "Notification numbers",
+    "url": "https://gristlabs.github.io/grist-widget/notification_numbers/index.html",
+    "widgetId": "@gristlabs/notification_numbers",
+    "published": true,
+    "accessLevel": "full",
+    "renderAfterReady": true,
+    "description": "База данных номеров извещений изделий",
+    "authors": [{"name": "Altair666","url": "https://github.com/Altair666"}],
+    "isGristLabsMaintained": false
+  }
 }
