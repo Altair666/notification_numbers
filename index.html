@@ -257,7 +257,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--sans);font-size:13px;col
   <div class="conn-dot" id="connDot"></div>
   <span class="conn-lbl" id="connLbl">Ожидание Grist…</span>
 </div>
-<footer class="ver-footer">v0.3.3</footer>
+<footer class="ver-footer">v0.3.4</footer>
 
 <div id="overlay"></div>
 <div id="settingsPanel">
@@ -291,6 +291,7 @@ var DEFAULT_OPTIONS = {
 var state = {
   records: [],          // notification records, raw Grist rows (real colIds)
   recordsLoaded: false,
+  changeNumberFloor: {}, // String(productId) -> highest ChangeNumber known taken (monotonic, never regresses)
   options: Object.assign({}, DEFAULT_OPTIONS),
 
   componentsById: {},   // id -> {id, name, primary_use, decimal_number, org_prefix, serial}
@@ -310,6 +311,25 @@ function setConn(ok, label) {
   document.getElementById('connLbl').textContent = label;
 }
 
+// changeNumberFloor is intentionally monotonic (only moves up): grist.onRecords
+// can fire with a snapshot that briefly lags behind our own just-completed write
+// (server round-trip), which would otherwise silently erase a freshly registered
+// ChangeNumber from view and cause the next registration to reuse it.
+function bumpChangeNumberFloor(productId, n) {
+  if (!productId || isNaN(n)) return;
+  var key = String(productId);
+  if (!state.changeNumberFloor[key] || n > state.changeNumberFloor[key]) {
+    state.changeNumberFloor[key] = n;
+  }
+}
+
+function absorbChangeNumberFloors(records) {
+  records.forEach(function (r) {
+    var n = parseInt(String(r.ChangeNumber || '0').replace(/[^0-9]/g, ''), 10);
+    bumpChangeNumberFloor(r.Product, n);
+  });
+}
+
 // ---------- Grist wiring ----------
 
 grist.ready({ requiredAccess: 'full' });
@@ -323,6 +343,7 @@ grist.onRecords(function (records) {
   setConn(true, 'Подключено к Grist');
   state.recordsLoaded = true;
   state.records = records;
+  absorbChangeNumberFloors(records);
   updateComputedFields();
   renderRegistry();
 });
@@ -619,15 +640,7 @@ function computeNextNumber(prefix, year) {
 
 function computeNextChangeNumber(productId) {
   if (!productId) return '—';
-  var max = 0;
-  var pid = Number(productId);
-  state.records.forEach(function (r) {
-    if (Number(r.Product) === pid) {
-      var n = parseInt(String(r.ChangeNumber || '0').replace(/[^0-9]/g, ''), 10);
-      if (!isNaN(n) && n > max) max = n;
-    }
-  });
-  return max + 1;
+  return (state.changeNumberFloor[String(productId)] || 0) + 1;
 }
 
 function onDateOrProductChange() { updateComputedFields(); }
@@ -677,6 +690,10 @@ function registerNotification() {
     ChangeReason: document.getElementById('fReason').value.trim(),
     ChangeNumber: computeNextChangeNumber(state.selectedProductId)
   };
+  // claim the ChangeNumber immediately, before the async write even starts —
+  // computeNextChangeNumber() must never hand out this value again, regardless
+  // of what onRecords delivers in the meantime
+  bumpChangeNumberFloor(fields.Product, fields.ChangeNumber);
   var btn = document.getElementById('btnRegister');
   btn.disabled = true;
   grist.selectedTable.create({ fields: fields }).then(function (result) {
