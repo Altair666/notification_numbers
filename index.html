@@ -257,7 +257,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--sans);font-size:13px;col
   <div class="conn-dot" id="connDot"></div>
   <span class="conn-lbl" id="connLbl">Ожидание Grist…</span>
 </div>
-<footer class="ver-footer">v0.3.4</footer>
+<footer class="ver-footer">v0.4.0</footer>
 
 <div id="overlay"></div>
 <div id="settingsPanel">
@@ -281,7 +281,15 @@ html,body{height:100%;overflow:hidden;font-family:var(--sans);font-size:13px;col
 <script>
 'use strict';
 
-var DOC_TYPES = ['СП','СБ','ГЧ','ТУ','РЭ','Д1','ПС','ВЭ','ЭТ','ВП','Э5','Э3','Э4','Э2','ИС'];
+// code '' = "Деталь" — a bare part designation with no suffix letters
+var DOC_TYPES = [
+  { code: '', label: 'Деталь' },
+  { code: 'СП', label: 'СП' }, { code: 'СБ', label: 'СБ' }, { code: 'ГЧ', label: 'ГЧ' },
+  { code: 'ТУ', label: 'ТУ' }, { code: 'РЭ', label: 'РЭ' }, { code: 'Д1', label: 'Д1' },
+  { code: 'ПС', label: 'ПС' }, { code: 'ВЭ', label: 'ВЭ' }, { code: 'ЭТ', label: 'ЭТ' },
+  { code: 'ВП', label: 'ВП' }, { code: 'Э5', label: 'Э5' }, { code: 'Э3', label: 'Э3' },
+  { code: 'Э4', label: 'Э4' }, { code: 'Э2', label: 'Э2' }, { code: 'ИС', label: 'ИС' }
+];
 var COMPONENTS_TABLE_CANDIDATES = ['Components', 'components'];
 
 var DEFAULT_OPTIONS = {
@@ -323,11 +331,21 @@ function bumpChangeNumberFloor(productId, n) {
   }
 }
 
-function absorbChangeNumberFloors(records) {
-  records.forEach(function (r) {
-    var n = parseInt(String(r.ChangeNumber || '0').replace(/[^0-9]/g, ''), 10);
-    bumpChangeNumberFloor(r.Product, n);
-  });
+// Don't trust onRecords' row-oriented Product values for this — read the raw
+// column-oriented data instead (same reliable source already used for the
+// Components table), in case onRecords represents Reference cells differently
+// from the plain row-id integers everywhere else in this widget assumes.
+function refreshChangeNumberFloorsFromServer() {
+  grist.docApi.fetchSelectedTable().then(function (table) {
+    var ids = table.id || [];
+    var products = table.Product || [];
+    var changeNumbers = table.ChangeNumber || [];
+    ids.forEach(function (id, i) {
+      var n = parseInt(String(changeNumbers[i] || '0').replace(/[^0-9]/g, ''), 10);
+      bumpChangeNumberFloor(products[i], n);
+    });
+    updateComputedFields();
+  }).catch(function (err) { console.error('Не удалось получить сырые данные для расчёта № изменения', err); });
 }
 
 // ---------- Grist wiring ----------
@@ -343,7 +361,7 @@ grist.onRecords(function (records) {
   setConn(true, 'Подключено к Grist');
   state.recordsLoaded = true;
   state.records = records;
-  absorbChangeNumberFloors(records);
+  refreshChangeNumberFloorsFromServer();
   updateComputedFields();
   renderRegistry();
 });
@@ -554,13 +572,13 @@ function toggleSelectAll() {
 // ---------- Document type buttons ----------
 
 var doctypeGrid = document.getElementById('doctypeGrid');
-DOC_TYPES.forEach(function (code) {
+DOC_TYPES.forEach(function (dt) {
   var btn = document.createElement('button');
   btn.className = 'doctype-btn';
-  btn.textContent = code;
+  btn.textContent = dt.label;
   btn.addEventListener('click', function () {
-    state.activeDocTypes[code] = !state.activeDocTypes[code];
-    btn.classList.toggle('on', !!state.activeDocTypes[code]);
+    state.activeDocTypes[dt.code] = !state.activeDocTypes[dt.code];
+    btn.classList.toggle('on', !!state.activeDocTypes[dt.code]);
   });
   doctypeGrid.appendChild(btn);
 });
@@ -569,7 +587,7 @@ DOC_TYPES.forEach(function (code) {
 
 function generateDocList() {
   var checkedIds = state.treeRows.map(function (r) { return r.id; }).filter(function (id) { return state.treeChecked[id]; });
-  var codes = DOC_TYPES.filter(function (c) { return state.activeDocTypes[c]; });
+  var codes = DOC_TYPES.map(function (dt) { return dt.code; }).filter(function (c) { return state.activeDocTypes[c]; });
   if (!checkedIds.length || !codes.length) {
     window.alert('Отметьте хотя бы один компонент в дереве и хотя бы один вид документа.');
     return;
