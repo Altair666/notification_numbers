@@ -256,7 +256,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--sans);font-size:13px;col
   <div class="conn-dot" id="connDot"></div>
   <span class="conn-lbl" id="connLbl">Ожидание Grist…</span>
 </div>
-<footer class="ver-footer">v0.2.1</footer>
+<footer class="ver-footer">v0.2.2</footer>
 
 <div id="overlay"></div>
 <div id="settingsPanel">
@@ -315,7 +315,7 @@ grist.ready({
   columns: [
     { name: 'Number', title: 'Номер извещения', type: 'Text' },
     { name: 'IssueDate', title: 'Дата выпуска документа', type: 'Date' },
-    { name: 'Product', title: 'Изделие', type: 'Ref:Components' },
+    { name: 'Product', title: 'Изделие', type: 'Ref' },
     { name: 'ProductName', title: 'Наименование изделия', type: 'Text', optional: true },
     { name: 'DocumentDesignations', title: 'Обозначение изменённых документов', type: 'Text' },
     { name: 'ChangeReason', title: 'Причина изменения', type: 'Text' },
