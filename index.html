@@ -21,14 +21,14 @@
   --r:4pt;--r2:4pt;
 }
 html,body{height:100%;overflow:hidden;font-family:var(--sans);font-size:13px;color:var(--tx);background:var(--bg)}
-.app{height:100vh;overflow:hidden;display:flex;flex-direction:column}
+.app{height:100%;overflow:hidden;display:flex;flex-direction:column}
 .conn-dot{width:6px;height:6px;border-radius:50%;background:var(--red);flex-shrink:0}
 .conn-dot.ok{background:var(--grn)}
 .conn-lbl{font-size:11px;color:var(--tx3)}
 .conn-status{position:fixed;left:10px;bottom:6px;display:flex;align-items:center;gap:6px;font-size:10px;color:var(--tx3);background:var(--surf2);border:1px solid var(--brd);border-radius:4pt;padding:1px 7px;z-index:10}
 .ver-footer{position:fixed;right:10px;bottom:6px;font-family:var(--mono);font-size:10px;color:var(--tx3);background:var(--surf2);border:1px solid var(--brd);border-radius:4pt;padding:1px 7px;z-index:10}
 
-.main{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:0;padding-bottom:26px}
+.main{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:0;padding-bottom:26px}
 
 .panel{background:var(--surf);border:1px solid var(--brd);border-radius:0;overflow:hidden}
 .panel+.panel{border-top:none}
@@ -75,7 +75,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--sans);font-size:13px;col
 .btn-primary:disabled{opacity:.35;cursor:not-allowed}
 
 /* ── BOM tree ── */
-.tree-layout{display:flex;gap:12px;align-items:flex-start}
+.tree-layout{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start}
 .tree-col{flex:1.4;min-width:260px;border:1px solid var(--brd);border-radius:var(--r);background:var(--surf2);max-height:320px;overflow-y:auto}
 .tree-toolbar{display:flex;align-items:center;gap:7px;padding:6px 8px;border-bottom:1px solid var(--brd);background:var(--surf);position:sticky;top:0}
 .tree-toolbar .form-label{margin:0}
@@ -105,14 +105,15 @@ html,body{height:100%;overflow:hidden;font-family:var(--sans);font-size:13px;col
 .gen-item span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .gen-item button{border:none;background:transparent;color:var(--red);cursor:pointer;font-size:13px;line-height:1;padding:0 2px}
 
+#regBody{overflow-x:auto}
 .reg-table{width:100%;border-collapse:collapse;font-size:12px}
 .reg-table th{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--tx3);padding:5px 8px;border-bottom:2px solid var(--brd);text-align:center;background:var(--surf2);white-space:nowrap}
 .reg-table td{padding:6px 8px;border-bottom:1px solid var(--brd);vertical-align:top;text-align:center}
 .reg-table tr:last-child td{border-bottom:none}
 .reg-table tr:hover td{background:var(--surf2)}
 .reg-dn{font-family:var(--mono);font-size:11px;color:var(--acc);white-space:nowrap}
-.reg-docs{text-align:left;white-space:pre-wrap;font-family:var(--mono);font-size:11px;max-width:220px}
-.reg-reason{text-align:left;white-space:pre-wrap;max-width:240px}
+.reg-docs{text-align:left;white-space:pre-wrap;font-family:var(--mono);font-size:11px;max-width:220px;word-break:break-word;overflow-wrap:anywhere}
+.reg-reason{text-align:left;white-space:pre-wrap;max-width:240px;word-break:break-word;overflow-wrap:anywhere}
 .reg-empty{padding:16px;text-align:center;color:var(--tx3);font-size:12px}
 .reg-filter-bar{padding:8px 12px;background:var(--surf2);border-bottom:1px solid var(--brd);display:flex;align-items:center;gap:8px}
 .reg-filter-wrap{position:relative;flex:1}
@@ -256,7 +257,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--sans);font-size:13px;col
   <div class="conn-dot" id="connDot"></div>
   <span class="conn-lbl" id="connLbl">Ожидание Grist…</span>
 </div>
-<footer class="ver-footer">v0.3.0</footer>
+<footer class="ver-footer">v0.3.1</footer>
 
 <div id="overlay"></div>
 <div id="settingsPanel">
@@ -677,7 +678,9 @@ function registerNotification() {
   };
   var btn = document.getElementById('btnRegister');
   btn.disabled = true;
-  grist.selectedTable.create({ fields: fields }).then(function () {
+  grist.selectedTable.create({ fields: fields }).then(function (result) {
+    var newId = (result && typeof result.id !== 'undefined') ? result.id : (Array.isArray(result) ? result[0].id : undefined);
+    state.records.push(Object.assign({ id: newId }, fields));
     resetForm();
     btn.disabled = false;
   }).catch(function (err) {
