@@ -256,7 +256,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--sans);font-size:13px;col
   <div class="conn-dot" id="connDot"></div>
   <span class="conn-lbl" id="connLbl">Ожидание Grist…</span>
 </div>
-<footer class="ver-footer">v0.2.2</footer>
+<footer class="ver-footer">v0.3.0</footer>
 
 <div id="overlay"></div>
 <div id="settingsPanel">
@@ -288,8 +288,8 @@ var DEFAULT_OPTIONS = {
 };
 
 var state = {
-  records: [],          // notification records, mapped
-  mappings: null,
+  records: [],          // notification records, raw Grist rows (real colIds)
+  recordsLoaded: false,
   options: Object.assign({}, DEFAULT_OPTIONS),
 
   componentsById: {},   // id -> {id, name, primary_use, decimal_number, org_prefix, serial}
@@ -311,49 +311,20 @@ function setConn(ok, label) {
 
 // ---------- Grist wiring ----------
 
-grist.ready({
-  columns: [
-    { name: 'Number', title: 'Номер извещения', type: 'Text' },
-    { name: 'IssueDate', title: 'Дата выпуска документа', type: 'Date' },
-    { name: 'Product', title: 'Изделие', type: 'Ref' },
-    { name: 'ProductName', title: 'Наименование изделия', type: 'Text', optional: true },
-    { name: 'DocumentDesignations', title: 'Обозначение изменённых документов', type: 'Text' },
-    { name: 'ChangeReason', title: 'Причина изменения', type: 'Text' },
-    { name: 'ChangeNumber', title: 'Номер изменения', type: 'Int' }
-  ],
-  requiredAccess: 'full'
-});
+grist.ready({ requiredAccess: 'full' });
 
 grist.onOptions(function (options) {
   state.options = Object.assign({}, DEFAULT_OPTIONS, options || {});
   loadComponents();
 });
 
-grist.onRecords(function (records, mappings) {
+grist.onRecords(function (records) {
   setConn(true, 'Подключено к Grist');
-  state.mappings = mappings || {};
-  state.records = records.map(function (r) { return applyMapping(r, state.mappings); });
+  state.recordsLoaded = true;
+  state.records = records;
   updateComputedFields();
   renderRegistry();
 });
-
-function applyMapping(record, mappings) {
-  var out = { id: record.id };
-  Object.keys(mappings || {}).forEach(function (key) {
-    var colId = mappings[key];
-    if (colId) out[key] = record[colId];
-  });
-  return out;
-}
-
-function mapBack(data, mappings) {
-  var fields = {};
-  Object.keys(data).forEach(function (key) {
-    var colId = mappings[key];
-    if (colId) fields[colId] = data[key];
-  });
-  return fields;
-}
 
 function showError(err) {
   console.error(err);
@@ -686,7 +657,7 @@ function resetForm() {
 resetForm();
 
 function registerNotification() {
-  if (!state.mappings) return;
+  if (!state.recordsLoaded) return;
   if (!state.selectedProductId) { window.alert('Выберите изделие.'); return; }
   var comp = state.componentsById[state.selectedProductId];
   var dateVal = document.getElementById('fDate').value;
@@ -695,7 +666,7 @@ function registerNotification() {
   if (!prefix || !year) { window.alert('Не удалось определить префикс организации или год выпуска.'); return; }
   if (!state.generatedList.length) { window.alert('Сформируйте список изменённых документов.'); return; }
 
-  var data = {
+  var fields = {
     Number: computeNextNumber(prefix, year),
     IssueDate: inputValueToDate(dateVal),
     Product: state.selectedProductId,
@@ -704,7 +675,6 @@ function registerNotification() {
     ChangeReason: document.getElementById('fReason').value.trim(),
     ChangeNumber: computeNextChangeNumber(state.selectedProductId)
   };
-  var fields = mapBack(data, state.mappings);
   var btn = document.getElementById('btnRegister');
   btn.disabled = true;
   grist.selectedTable.create({ fields: fields }).then(function () {
@@ -827,11 +797,11 @@ function editableRow(r) {
   tdActions.className = 'reg-actions';
   var saveBtn = iconButton('cell-edit-btn save', checkSvg(), 'Сохранить');
   saveBtn.addEventListener('click', function () {
-    var fields = mapBack({
+    var fields = {
       IssueDate: inputValueToDate(inDate.value),
       DocumentDesignations: taDocs.value.trim().split(/\s+/).join(' '),
       ChangeReason: taReason.value.trim()
-    }, state.mappings);
+    };
     grist.selectedTable.update({ id: r.id, fields: fields }).then(function () {
       editingId = null;
     }).catch(showError);
