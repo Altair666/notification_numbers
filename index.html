@@ -76,27 +76,30 @@ html,body{height:100%;overflow:hidden;font-family:var(--sans);font-size:13px;col
 
 /* ── BOM tree ── */
 .tree-layout{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start}
-.tree-col{flex:2.2;min-width:420px;border:1px solid var(--brd);border-radius:var(--r);background:var(--surf2);max-height:360px;overflow:auto}
+.tree-col{flex:2.2;min-width:480px;border:1px solid var(--brd);border-radius:var(--r);background:var(--surf2);max-height:360px;overflow:auto}
 .tree-empty{padding:16px;text-align:center;color:var(--tx3);font-size:12px}
 .cb-box{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border:1.5px solid var(--brd2);border-radius:3pt;background:#fff;cursor:pointer;transition:all .12s;color:transparent;flex-shrink:0}
 .cb-box:hover{border-color:var(--acc-brd);background:var(--acc-bg)}
 .cb-box.on{border-color:var(--acc);background:var(--acc);color:#fff}
 
-.tree-matrix{border-collapse:collapse;font-size:11px;white-space:nowrap}
+.tree-matrix{border-collapse:collapse;font-size:12px;white-space:nowrap}
 .tree-matrix th,.tree-matrix td{border-bottom:1px solid var(--brd);padding:4px 6px;text-align:center}
 .tree-matrix thead th{position:sticky;top:0;background:var(--surf);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--tx2);border-bottom:2px solid var(--brd);z-index:1}
-.tree-matrix th.tm-name,.tree-matrix td.tm-name{text-align:left;white-space:nowrap;position:sticky;left:0;background:var(--surf);z-index:2}
+.tree-matrix th.tm-name,.tree-matrix td.tm-name{text-align:left;white-space:nowrap;position:sticky;left:0;background:var(--surf);z-index:2;min-width:260px}
 .tree-matrix thead th.tm-name{z-index:3}
-.tree-matrix th.tm-shade,.tree-matrix td.tm-shade{background:var(--surf3)}
-.tree-matrix thead th.tm-shade{background:#e0ddd3}
+.tree-matrix th.tm-shade,.tree-matrix td.tm-shade{background:#d9d9d9}
 .tree-matrix tbody tr:hover td:not(.tm-name){background:var(--acc-bg)}
 .tree-matrix tbody tr:last-child td{border-bottom:none}
-.tree-dn{font-family:var(--mono);font-size:11px;color:var(--acc)}
-.tree-name{font-size:11px;color:var(--tx2)}
+.tree-dn{font-family:var(--mono);font-size:12px;color:var(--acc)}
+.tree-name{font-size:12px;color:var(--tx2)}
 .tree-matrix td.tm-cb input{width:14px;height:14px;cursor:pointer;accent-color:var(--acc)}
 
+.gen-transfer{display:flex;align-items:center;justify-content:center;align-self:stretch}
+.btn-transfer{width:30px;height:100%;min-height:100px;border:none;border-radius:var(--r);background:#16b378;color:#fff;font-size:15px;font-weight:600;letter-spacing:.05em;cursor:pointer;transition:opacity .15s,transform .1s}
+.btn-transfer:hover{opacity:.88}
+.btn-transfer:active{transform:scale(.98)}
+
 .gen-col{flex:1;min-width:220px;border:1px solid var(--brd);border-radius:var(--r);background:var(--surf2);display:flex;flex-direction:column;max-height:360px}
-.gen-toolbar{padding:8px;border-bottom:1px solid var(--brd);background:var(--surf)}
 .gen-list{overflow-y:auto;flex:1}
 .gen-empty{padding:14px;text-align:center;color:var(--tx3);font-size:11px}
 .gen-item{display:flex;align-items:center;gap:6px;padding:4px 8px;border-bottom:1px solid var(--brd);font-family:var(--mono);font-size:11px;color:var(--tx)}
@@ -198,18 +201,15 @@ html,body{height:100%;overflow:hidden;font-family:var(--sans);font-size:13px;col
 
   <!-- BOM TREE / DOCUMENT LIST BUILDER -->
   <div class="panel" id="bomPanel">
-    <div class="ph">
-      <span class="ph-title">Состав изделия и формируемые документы</span>
-    </div>
     <div class="pb">
       <div class="tree-layout">
         <div class="tree-col">
           <div id="treeBody"><div class="tree-empty">Выберите изделие выше, чтобы увидеть его состав</div></div>
         </div>
+        <div class="gen-transfer">
+          <button class="btn-transfer" onclick="generateDocList()" title="Сформировать список документов">»</button>
+        </div>
         <div class="gen-col">
-          <div class="gen-toolbar">
-            <button class="btn-add" onclick="generateDocList()">Сформировать</button>
-          </div>
           <div class="gen-list" id="genList"><div class="gen-empty">Формируемый список документации пуст</div></div>
         </div>
       </div>
@@ -245,7 +245,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--sans);font-size:13px;col
   <div class="conn-dot" id="connDot"></div>
   <span class="conn-lbl" id="connLbl">Ожидание Grist…</span>
 </div>
-<footer class="ver-footer">v0.5.0</footer>
+<footer class="ver-footer">v0.5.1</footer>
 
 <div id="overlay"></div>
 <div id="settingsPanel">
@@ -276,7 +276,8 @@ var DOC_TYPES = [
   { code: 'ТУ', label: 'ТУ' }, { code: 'РЭ', label: 'РЭ' }, { code: 'Д1', label: 'Д1' },
   { code: 'ПС', label: 'ПС' }, { code: 'ВЭ', label: 'ВЭ' }, { code: 'ЭТ', label: 'ЭТ' },
   { code: 'ВП', label: 'ВП' }, { code: 'Э5', label: 'Э5' }, { code: 'Э3', label: 'Э3' },
-  { code: 'Э4', label: 'Э4' }, { code: 'Э2', label: 'Э2' }, { code: 'ИС', label: 'ИС' }
+  { code: 'ПЭ3', label: 'ПЭ3' }, { code: 'Э4', label: 'Э4' }, { code: 'Э2', label: 'Э2' },
+  { code: 'ИС', label: 'ИС' }
 ];
 var COMPONENTS_TABLE_CANDIDATES = ['Components', 'components'];
 
@@ -496,7 +497,7 @@ function collectDescendants(rootId) {
 // - any other sub-assembly (has children)
 // - a bottom-level part (no children) — just "Д" (bare part, no suffix)
 var DEFAULT_CODES_TOP = ['СП', 'СБ', 'ГЧ', 'ТУ', 'РЭ', 'Д1', 'ПС', 'ВЭ', 'Э4', 'Э5'];
-var DEFAULT_CODES_ASSEMBLY_469515 = ['СП', 'СБ', 'Э3', 'Э2', 'ВП'];
+var DEFAULT_CODES_ASSEMBLY_469515 = ['СП', 'СБ', 'Э3', 'ПЭ3', 'Э2', 'ВП'];
 var DEFAULT_CODES_ASSEMBLY = ['СП', 'СБ', 'ВП'];
 var DEFAULT_CODES_LEAF = [''];
 
@@ -549,7 +550,7 @@ function renderTree() {
   var thead = document.createElement('thead');
   var headRow = document.createElement('tr');
   var thName = document.createElement('th');
-  thName.className = 'tm-name'; thName.textContent = 'Обозначение / наименование';
+  thName.className = 'tm-name'; thName.textContent = 'Состав изделия и формируемые документы';
   headRow.appendChild(thName);
   DOC_TYPES.forEach(function (dt, i) {
     var th = document.createElement('th');
