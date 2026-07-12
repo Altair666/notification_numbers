@@ -79,7 +79,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--sans);font-size:13px;col
 .gen-remove-btn{border:none;background:transparent;color:var(--red);cursor:pointer;font-size:14px;line-height:1;padding:0 4px}
 
 /* ── Products accordion ── */
-#productsList{display:flex;flex-direction:column;gap:6px}
+#productsList{display:flex;flex-direction:column;gap:6px;margin-top:12px}
 .prod-item{border:1px solid var(--brd);border-radius:var(--r);background:var(--surf2);overflow:hidden}
 .prod-header{display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;user-select:none;transition:background .12s}
 .prod-header:hover{background:var(--surf3)}
@@ -89,8 +89,8 @@ html,body{height:100%;overflow:hidden;font-family:var(--sans);font-size:13px;col
 .prod-name{font-size:12px;color:var(--tx);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .prod-count{flex-shrink:0}
 .prod-body{border-top:1px solid var(--brd);background:var(--surf);padding:10px}
-.prod-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:10px;flex-wrap:wrap}
-.prod-meta{font-size:11px;color:var(--tx2);font-family:var(--mono)}
+.prod-num{display:inline-flex;align-items:center;font-family:var(--mono);font-size:12px;font-weight:500;background:var(--grn-bg);border:1px solid var(--grn-brd);color:var(--grn);border-radius:var(--r);padding:6px 10px;margin-bottom:10px}
+.prod-footer{display:flex;align-items:center;justify-content:flex-end;gap:12px;margin-top:10px;flex-wrap:wrap}
 .prod-footer .btn-add{width:auto;padding:8px 16px}
 
 #regBody{overflow-x:auto}
@@ -141,7 +141,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--sans);font-size:13px;col
 <div class="app">
 <main class="main" id="main">
 
-  <!-- REGISTRATION FORM -->
+  <!-- REGISTRATION FORM + PRODUCTS AVAILABLE FOR NOTICE REGISTRATION -->
   <div class="panel">
     <div class="ph">
       <span class="ph-title">Регистрация извещения</span>
@@ -151,26 +151,21 @@ html,body{height:100%;overflow:hidden;font-family:var(--sans);font-size:13px;col
     </div>
     <div class="pb">
 
-      <div class="form-row" style="grid-template-columns:200px">
+      <div class="form-row" style="grid-template-columns:200px auto;align-items:end">
         <div class="form-group">
           <label class="form-label">Дата выпуска</label>
           <input class="form-input mono" type="date" id="fDate" onchange="renderProductsList()">
         </div>
+        <div class="form-group">
+          <label class="form-label">&nbsp;</label>
+          <button class="icon-btn" id="btnRefreshDocs" title="Обновить подборку из inventory_book">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          </button>
+        </div>
       </div>
 
-    </div>
-  </div>
-
-  <!-- PRODUCTS AVAILABLE FOR NOTICE REGISTRATION (auto-pulled from inventory_book) -->
-  <div class="panel">
-    <div class="ph">
-      <span class="ph-title">Изделия к извещению</span>
-      <button class="icon-btn" id="btnRefreshDocs" title="Обновить подборку из inventory_book">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-      </button>
-    </div>
-    <div class="pb">
       <div id="productsList"><div class="gen-empty">Загрузка…</div></div>
+
     </div>
   </div>
 
@@ -196,7 +191,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--sans);font-size:13px;col
   <div class="conn-dot" id="connDot"></div>
   <span class="conn-lbl" id="connLbl">Ожидание Grist…</span>
 </div>
-<footer class="ver-footer">v0.7.1</footer>
+<footer class="ver-footer">v0.7.2</footer>
 
 <div id="overlay"></div>
 <div id="settingsPanel">
@@ -579,6 +574,16 @@ function buildProductBody(g) {
   var body = document.createElement('div');
   body.className = 'prod-body';
 
+  var dateVal = document.getElementById('fDate').value;
+  var year = dateVal ? dateVal.slice(0, 4) : '';
+  var prefix = orgPrefixFor(g.comp);
+  var numberPreview = (prefix && year) ? computeNextNumber(prefix, year) : '—';
+
+  var numBox = document.createElement('div');
+  numBox.className = 'prod-num';
+  numBox.textContent = '№ извещения: ' + numberPreview;
+  body.appendChild(numBox);
+
   var col = document.createElement('div');
   col.className = 'gen-col';
   col.appendChild(buildGenTable(g));
@@ -586,17 +591,6 @@ function buildProductBody(g) {
 
   var footer = document.createElement('div');
   footer.className = 'prod-footer';
-
-  var dateVal = document.getElementById('fDate').value;
-  var year = dateVal ? dateVal.slice(0, 4) : '';
-  var prefix = orgPrefixFor(g.comp);
-  var numberPreview = (prefix && year) ? computeNextNumber(prefix, year) : '—';
-  var changeNumPreview = computeNextChangeNumber(g.productId);
-
-  var meta = document.createElement('div');
-  meta.className = 'prod-meta';
-  meta.textContent = '№ извещения: ' + numberPreview + '   ·   № изменения: ' + changeNumPreview;
-  footer.appendChild(meta);
 
   var btn = document.createElement('button');
   btn.className = 'btn-add';
@@ -612,7 +606,7 @@ function buildProductBody(g) {
 function buildGenTable(g) {
   var table = document.createElement('table');
   table.className = 'gen-table';
-  table.innerHTML = '<thead><tr><th style="text-align:left">Обозначение</th><th>Версия</th><th style="text-align:left">Причина изменения</th><th></th></tr></thead><tbody></tbody>';
+  table.innerHTML = '<thead><tr><th style="text-align:left">Обозначение</th><th>Изменение</th><th style="text-align:left">Причина изменения</th><th></th></tr></thead><tbody></tbody>';
   var tbody = table.querySelector('tbody');
   var list = g.list;
 
