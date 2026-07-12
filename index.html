@@ -49,8 +49,9 @@ html,body{height:100%;overflow:hidden;font-family:var(--sans);font-size:13px;col
 .form-input[readonly]:focus{border-color:var(--brd)}
 .form-input::placeholder{color:var(--tx3)}
 .form-input.mono{font-family:var(--mono)}
-.form-input.formed-num{font-family:var(--mono);background:var(--grn-bg);border-color:var(--grn-brd);color:var(--grn);font-weight:500;cursor:default}
+.form-input.formed-num{display:flex;align-items:center;justify-content:center;text-align:center;font-family:var(--mono);background:var(--grn-bg);border-color:var(--grn-brd);color:var(--grn);font-weight:500;cursor:default}
 .form-input.formed-num:focus{background:var(--grn-bg);border-color:var(--grn-brd)}
+.form-date-btn{width:32px;height:32px;flex-shrink:0}
 .form-select{height:32px;border:1px solid var(--brd);border-radius:var(--r);background:#f7f7f7;padding:0 9px;font-family:inherit;font-size:12px;color:var(--tx);outline:none;width:100%;cursor:pointer;transition:border-color .15s}
 .form-select:focus{border-color:var(--acc)}
 .form-textarea{border:1px solid var(--brd);border-radius:var(--r);background:#f7f7f7;padding:8px 9px;font-family:inherit;font-size:12px;color:var(--tx);outline:none;width:100%;min-height:56px;resize:vertical;transition:border-color .15s,background .15s}
@@ -68,7 +69,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--sans);font-size:13px;col
 .btn-primary:disabled{opacity:.35;cursor:not-allowed}
 
 /* ── Generated document list (auto-pulled from inventory_book) ── */
-.gen-col{border:1px solid var(--brd);border-radius:var(--r);background:var(--surf2);max-height:360px;overflow:auto}
+.gen-col{background:var(--surf2);max-height:360px;overflow:auto}
 .gen-empty{padding:16px;text-align:center;color:var(--tx3);font-size:12px}
 .gen-table{width:100%;border-collapse:collapse;font-size:12px}
 .gen-table th{position:sticky;top:0;background:var(--surf);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--tx2);border-bottom:2px solid var(--brd);padding:5px 8px;text-align:center;z-index:1}
@@ -81,16 +82,15 @@ html,body{height:100%;overflow:hidden;font-family:var(--sans);font-size:13px;col
 /* ── Products accordion ── */
 #productsList{display:flex;flex-direction:column;gap:6px;margin-top:12px}
 .prod-item{border:1px solid var(--brd);border-radius:var(--r);background:var(--surf2);overflow:hidden}
-.prod-header{display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;user-select:none;transition:background .12s}
+.prod-header{display:flex;align-items:center;gap:10px;padding:12px;cursor:pointer;user-select:none;transition:background .12s}
 .prod-header:hover{background:var(--surf3)}
 .prod-chevron{display:flex;align-items:center;color:var(--tx3);transition:transform .15s;flex-shrink:0}
 .prod-chevron.on{transform:rotate(90deg)}
 .prod-dn{font-family:var(--mono);font-size:12px;color:var(--acc);white-space:nowrap;flex-shrink:0}
 .prod-name{font-size:12px;color:var(--tx);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .prod-count{flex-shrink:0}
-.prod-body{border-top:1px solid var(--brd);background:var(--surf);padding:10px}
-.prod-footer{display:flex;align-items:center;justify-content:flex-end;gap:12px;margin-top:10px;flex-wrap:wrap}
-.prod-footer .btn-add{width:auto;padding:8px 16px}
+.prod-header .btn-add{width:auto;padding:8px 16px;flex-shrink:0}
+.prod-body{border-top:1px solid var(--brd);background:var(--surf);padding:0}
 
 #regBody{overflow-x:auto}
 .reg-table{width:100%;border-collapse:collapse;font-size:12px}
@@ -150,7 +150,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--sans);font-size:13px;col
     </div>
     <div class="pb">
 
-      <div class="form-row" style="grid-template-columns:200px 200px auto;align-items:center">
+      <div class="form-row" style="grid-template-columns:100px 100px 40px">
         <div class="form-group">
           <label class="form-label">№ извещения</label>
           <div class="form-input mono formed-num" id="fNoticeNum">—</div>
@@ -159,9 +159,12 @@ html,body{height:100%;overflow:hidden;font-family:var(--sans);font-size:13px;col
           <label class="form-label">Дата выпуска</label>
           <input class="form-input mono" type="date" id="fDate" onchange="renderProductsList()">
         </div>
-        <button class="icon-btn" id="btnRefreshDocs" title="Обновить подборку из inventory_book">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-        </button>
+        <div class="form-group" style="align-items:flex-start">
+          <label class="form-label">&nbsp;</label>
+          <button class="icon-btn form-date-btn" id="btnRefreshDocs" title="Обновить подборку из inventory_book">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          </button>
+        </div>
       </div>
 
       <div id="productsList"><div class="gen-empty">Загрузка…</div></div>
@@ -191,7 +194,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--sans);font-size:13px;col
   <div class="conn-dot" id="connDot"></div>
   <span class="conn-lbl" id="connLbl">Ожидание Grist…</span>
 </div>
-<footer class="ver-footer">v0.7.3</footer>
+<footer class="ver-footer">v0.7.4</footer>
 
 <div id="overlay"></div>
 <div id="settingsPanel">
@@ -570,6 +573,16 @@ function buildProductAccordionItem(g) {
   badge.className = 'tag tag-blue prod-count'; badge.textContent = g.list.length;
   header.appendChild(badge);
 
+  var registerBtn = document.createElement('button');
+  registerBtn.className = 'btn-add';
+  registerBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Зарегистрировать';
+  registerBtn.disabled = !g.list.length;
+  registerBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    registerNotificationForProduct(g, registerBtn);
+  });
+  header.appendChild(registerBtn);
+
   header.addEventListener('click', function () {
     if (state.expandedProductIds[g.productId]) {
       delete state.expandedProductIds[g.productId];
@@ -595,17 +608,6 @@ function buildProductBody(g) {
   col.appendChild(buildGenTable(g));
   body.appendChild(col);
 
-  var footer = document.createElement('div');
-  footer.className = 'prod-footer';
-
-  var btn = document.createElement('button');
-  btn.className = 'btn-add';
-  btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Зарегистрировать';
-  btn.disabled = !g.list.length;
-  btn.addEventListener('click', function () { registerNotificationForProduct(g, btn); });
-  footer.appendChild(btn);
-
-  body.appendChild(footer);
   return body;
 }
 
