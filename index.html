@@ -123,15 +123,6 @@ html,body{height:100%;overflow:hidden;font-family:var(--sans);font-size:13px;col
 .tag{display:inline-flex;align-items:center;font-family:var(--mono);font-size:10px;padding:1px 5px;border-radius:4pt}
 .tag-blue{background:var(--acc-bg);color:var(--acc)}
 
-/* Settings slide-over */
-#overlay{position:fixed;inset:0;background:rgba(0,0,0,.15);display:none;z-index:190}
-#overlay.on{display:block}
-#settingsPanel{position:fixed;top:0;right:0;bottom:0;width:min(340px,100%);background:var(--surf);border-left:1px solid var(--brd);box-shadow:-4px 0 12px rgba(0,0,0,.1);display:none;flex-direction:column;z-index:200}
-#settingsPanel.on{display:flex}
-#settingsPanel .ph{flex-shrink:0}
-#settingsPanel .pb{flex:1;overflow-y:auto}
-#settingsPanel .panel-footer{padding:10px 12px;border-top:1px solid var(--brd);display:flex;justify-content:flex-end;gap:8px;flex-shrink:0}
-
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--brd2);border-radius:4pt}
@@ -145,9 +136,6 @@ html,body{height:100%;overflow:hidden;font-family:var(--sans);font-size:13px;col
   <div class="panel">
     <div class="ph">
       <span class="ph-title">Регистрация извещения</span>
-      <button class="icon-btn" id="btnSettings" title="Настройки виджета">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      </button>
     </div>
     <div class="pb">
 
@@ -195,31 +183,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--sans);font-size:13px;col
   <div class="conn-dot" id="connDot"></div>
   <span class="conn-lbl" id="connLbl">Ожидание Grist…</span>
 </div>
-<footer class="ver-footer">v0.7.5</footer>
-
-<div id="overlay"></div>
-<div id="settingsPanel">
-  <div class="ph">
-    <span class="ph-title">Настройки виджета</span>
-    <button class="icon-btn" id="settingsClose">&times;</button>
-  </div>
-  <div class="pb">
-    <div class="form-group" style="margin-bottom:12px">
-      <label class="form-label">ID таблицы номенклатуры</label>
-      <input class="form-input mono" id="sComponentsTable" placeholder="Components">
-      <span class="form-hint">Таблица компонентов/изделий с колонками name, primary_use, decimal_number, org_prefix.</span>
-    </div>
-    <div class="form-group" style="margin-bottom:12px">
-      <label class="form-label">ID таблицы inventory_book</label>
-      <input class="form-input mono" id="sInventoryTable" placeholder="inventory_book">
-      <span class="form-hint">Реестр документов с колонками Product, DocumentDesignation, ChangeNumber, Note.</span>
-    </div>
-  </div>
-  <div class="panel-footer">
-    <button class="btn-secondary" id="settingsCancel">Отмена</button>
-    <button class="btn-primary" id="settingsSave">Сохранить</button>
-  </div>
-</div>
+<footer class="ver-footer">v0.8.0</footer>
 
 <script>
 'use strict';
@@ -912,41 +876,7 @@ function trashSvg() { return '<svg width="12" height="12" viewBox="0 0 24 24" fi
 function checkSvg() { return '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>'; }
 function xSvg() { return '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>'; }
 
-// ---------- Settings ----------
-
-var overlay = document.getElementById('overlay');
-var settingsPanel = document.getElementById('settingsPanel');
-var sComponentsTable = document.getElementById('sComponentsTable');
-var sInventoryTable = document.getElementById('sInventoryTable');
-
-document.getElementById('btnSettings').addEventListener('click', openSettings);
-document.getElementById('settingsClose').addEventListener('click', closeSettings);
-document.getElementById('settingsCancel').addEventListener('click', closeSettings);
-overlay.addEventListener('click', closeSettings);
 document.getElementById('btnRefreshDocs').addEventListener('click', loadInventoryBook);
-
-function openSettings() {
-  sComponentsTable.value = state.options.componentsTableId || '';
-  sInventoryTable.value = state.options.inventoryTableId || '';
-  overlay.classList.add('on');
-  settingsPanel.classList.add('on');
-}
-function closeSettings() {
-  overlay.classList.remove('on');
-  settingsPanel.classList.remove('on');
-}
-document.getElementById('settingsSave').addEventListener('click', function () {
-  var newOptions = {
-    componentsTableId: sComponentsTable.value.trim(),
-    inventoryTableId: sInventoryTable.value.trim()
-  };
-  grist.setOption('componentsTableId', newOptions.componentsTableId);
-  grist.setOption('inventoryTableId', newOptions.inventoryTableId);
-  state.options = newOptions;
-  loadComponents();
-  loadInventoryBook();
-  closeSettings();
-});
 
 </script>
 </body>
